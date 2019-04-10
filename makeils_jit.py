@@ -1,3 +1,11 @@
+'''
+ILS generation functions
+@author: Jeff Nivitanont
+@email: jeffniv@ou.edu
+
+ILS generation code adapted from IDL script by Eric Burgh. Optimized with Numba JIT compiler.
+'''
+
 import numpy as np
 from scipy.special import jv as besselj
 import matplotlib.pyplot as plt
@@ -10,64 +18,61 @@ band = 0
 slit_length = 51
 names = ['uniform','point','half','linear']
 
-#need to generate range of betas around the order of interest
-         
-
 @jit
 def robust_mean(Y,cut,Sigma):
-#+
-# NAME:
-#    Robust_Mean 
-#
-# PURPOSE:
-#    Outlier-resistant determination of the mean and standard deviation.
-#
-# EXPLANATION:
-#    Robust_Mean trims away outliers using the median and the median
-#    absolute deviation.    An approximation formula is used to correct for
-#    the trunction caused by trimming away outliers
-#
-# CALLING SEQUENCE:
-#    mean = Robust_Mean( VECTOR, Sigma_CUT, Sigma_Mean, Num_RejECTED)
-#
-# INPUT ARGUMENT:
-#       VECTOR    = Vector to average
-#       Sigma_CUT = Data more than this number of standard deviations from the
-#               median is ignored. Suggested values: 2.0 and up.
-#
-# OUTPUT ARGUMENT:
-#       Mean  = the mean of the input vector, numeric scalar
-#
-# KEYWORDS:
-#
-#       GoodInd = The indices of the values not rejected
-#
-# OPTIONAL OUTPUTS:
-#Sigma_Mean = the approximate standard deviation of the mean, numeric
-#            scalar.  This is the Sigma of the distribution divided by sqrt(N-1)
-#            where N is the number of unrejected points. The larger
-#            SIGMA_CUT, the more accurate. It will tend to underestimate the
-#            true uncertainty of the mean, and this may become significant for
-#            cuts of 2.0 or less.
-#       Num_RejECTED = the number of points trimmed, integer scalar
-#
-# EXAMPLE:
-#       IDL> a = randomn(seed, 10000)    #Normal distribution with 10000 pts
-#       IDL> Robust_Mean,a, 3, mean, meansig, num    #3 Sigma clipping   
-#       IDL> print, mean, meansig,num
-#
-#       The mean should be near 0, and meansig should be near 0.01 ( =
-#        1/sqrt(10000) ).    
-# PROCEDURES USED:
-#       AVG() - compute simple mean
-# REVISION HISTORY:
-#       Written, H. Freudenreich, STX, 1989# Second iteration added 5/91.
-#       Use MEDIAN(/EVEN)    W. Landsman   April 2002
-#       Correct conditional test, higher order truncation correction formula
-#                R. Arendt/W. Landsman   June 2002
-#       New truncation formula for sigma H. Freudenriech  July 2002
-#-  
-  
+	'''
+	# NAME:
+	#    Robust_Mean 
+	#
+	# PURPOSE:
+	#    Outlier-resistant determination of the mean and standard deviation.
+	#
+	# EXPLANATION:
+	#    Robust_Mean trims away outliers using the median and the median
+	#    absolute deviation.    An approximation formula is used to correct for
+	#    the trunction caused by trimming away outliers
+	#
+	# CALLING SEQUENCE:
+	#    mean = Robust_Mean( VECTOR, Sigma_CUT, Sigma_Mean, Num_RejECTED)
+	#
+	# INPUT ARGUMENT:
+	#       VECTOR    = Vector to average
+	#       Sigma_CUT = Data more than this number of standard deviations from the
+	#               median is ignored. Suggested values: 2.0 and up.
+	#
+	# OUTPUT ARGUMENT:
+	#       Mean  = the mean of the input vector, numeric scalar
+	#
+	# KEYWORDS:
+	#
+	#       GoodInd = The indices of the values not rejected
+	#
+	# OPTIONAL OUTPUTS:
+	#Sigma_Mean = the approximate standard deviation of the mean, numeric
+	#            scalar.  This is the Sigma of the distribution divided by sqrt(N-1)
+	#            where N is the number of unrejected points. The larger
+	#            SIGMA_CUT, the more accurate. It will tend to underestimate the
+	#            true uncertainty of the mean, and this may become significant for
+	#            cuts of 2.0 or less.
+	#       Num_RejECTED = the number of points trimmed, integer scalar
+	#
+	# EXAMPLE:
+	#       IDL> a = randomn(seed, 10000)    #Normal distribution with 10000 pts
+	#       IDL> Robust_Mean,a, 3, mean, meansig, num    #3 Sigma clipping   
+	#       IDL> print, mean, meansig,num
+	#
+	#       The mean should be near 0, and meansig should be near 0.01 ( =
+	#        1/sqrt(10000) ).    
+	# PROCEDURES USED:
+	#       AVG() - compute simple mean
+	# REVISION HISTORY:
+	#       Written, H. Freudenreich, STX, 1989# Second iteration added 5/91.
+	#       Use MEDIAN(/EVEN)    W. Landsman   April 2002
+	#       Correct conditional test, higher order truncation correction formula
+	#                R. Arendt/W. Landsman   June 2002
+	#       New truncation formula for sigma H. Freudenriech  July 2002
+	#-  
+	'''  
     Npts    = len(Y)
     YMed    = np.median(Y)
     AbsDev  = np.abs(Y-YMed)
@@ -78,7 +83,6 @@ def robust_mean(Y,cut,Sigma):
     GoodPts = Y[ GoodInd ]
     Mean    = GoodPts.mean()
     Sigma   = GoodPts.std()
-    #Num_Rej = Npts - len(GoodPts) 
     # Compenate Sigma for truncation (formula by HF):
     if cut < 4.50: Sigma=Sigma/(-0.15405+0.90723*cut-0.23584*cut**2+0.020142*cut**3)  
     # Now the standard deviation of the mean:
@@ -136,9 +140,9 @@ def betaangle(cenwave,sigma,alpha,gamma=0,m=1):
 @jit
 def conv_circ( signal, ker ):
     '''
-        signal: real 1D array
-        ker: real 1D array
-        signal and ker must have same shape
+    signal: real 1D array
+    ker: real 1D array
+    signal and ker must have same shape
     '''
     f2 = np.real(np.fft.ifft( np.fft.fft(signal)*np.fft.fft(ker) ))
     f2 = np.roll(f2, -((f2.shape[0] - 1)//2))
@@ -295,53 +299,53 @@ def makeils4(band,inputslit,specimfwhm=0): #transfer=False,
     return wave,ils2
 
 
-# if __name__ == '__main__':
-#     inslit = {}
-#     inslit['uniform'] = np.ones(slit_length)
-#     inslit['point'] = np.zeros(slit_length)+0.01
-#     inslit['point'][round(slit_length/5)] = 1.
-#     inslit['half'] = np.zeros(slit_length)
-#     inslit['half'][:round(slit_length/2)] = 1.
-#     inslit['linear'] = np.linspace(0,1,slit_length)
+if __name__ == '__main__':
+    inslit = {}
+    inslit['uniform'] = np.ones(slit_length)
+    inslit['point'] = np.zeros(slit_length)+0.01
+    inslit['point'][round(slit_length/5)] = 1.
+    inslit['half'] = np.zeros(slit_length)
+    inslit['half'][:round(slit_length/2)] = 1.
+    inslit['linear'] = np.linspace(0,1,slit_length)
 
-#     ils = {}
-#     for ky in names:
-#         wave,tils = makeils4(band,inslit[ky])
-#         ils[ky] = tils/(tils.sum()*np.diff(wave)[0])
+    ils = {}
+    for ky in names:
+        wave,tils = makeils4(band,inslit[ky])
+        ils[ky] = tils/(tils.sum()*np.diff(wave)[0])
 
 
-#     fig = plt.figure(figsize=(12,8))
-#     gs = GridSpec(3,1)
-#     ax = fig.add_subplot(gs[0,0])
-#     for ky in names:
-#         ax.plot(inslit[ky])
-#     #[x0,x1] = ax.get_xlim()
-#     #[y0,y1] = ax.get_ylim()
-#     #ax.set_aspect(0.4*(x1-x0)/(y1-y0))
-#     plt.legend(ils.keys())
-#     plt.title('Slit Functions')
+    fig = plt.figure(figsize=(12,8))
+    gs = GridSpec(3,1)
+    ax = fig.add_subplot(gs[0,0])
+    for ky in names:
+        ax.plot(inslit[ky])
+    #[x0,x1] = ax.get_xlim()
+    #[y0,y1] = ax.get_ylim()
+    #ax.set_aspect(0.4*(x1-x0)/(y1-y0))
+    plt.legend(ils.keys())
+    plt.title('Slit Functions')
 
-#     ax = fig.add_subplot(gs[1,0])
-#     inds = np.where(ils['uniform'] >= ils['uniform'].max()*0.002)[0]
-#     for ky in names:
-#         ax.plot(wave[inds],ils[ky][inds])#/ils.max())
-#     #[x0,x1] = ax.get_xlim()
-#     #[y0,y1] = ax.get_ylim()
-#     #ax.set_aspect(0.4*(x1-x0)/(y1-y0))
-#     plt.legend(ils.keys())
-#     plt.title('Normalized ISRF for Different Slit Functions')
+    ax = fig.add_subplot(gs[1,0])
+    inds = np.where(ils['uniform'] >= ils['uniform'].max()*0.002)[0]
+    for ky in names:
+        ax.plot(wave[inds],ils[ky][inds])#/ils.max())
+    #[x0,x1] = ax.get_xlim()
+    #[y0,y1] = ax.get_ylim()
+    #ax.set_aspect(0.4*(x1-x0)/(y1-y0))
+    plt.legend(ils.keys())
+    plt.title('Normalized ISRF for Different Slit Functions')
 
-#     ax = fig.add_subplot(gs[2,0])
-#     inds = np.where(ils['uniform'] >= ils['uniform'].max()*0.002)[0]
-#     for ky in names:
-#         ax.semilogy(wave[inds],ils[ky][inds])#/ils.max())
-#     #[x0,x1] = ax.get_xlim()
-#     #[y0,y1] = ax.get_ylim()
-#     #ax.set_aspect(0.4*(x1-x0)/(log(y1)-log(y0)))
-#     #plt.yscale('log')
-#     plt.legend(ils.keys())
-#     plt.title('Normalized ISRF for Different Slit Functions')
-#     plt.tight_layout()
+    ax = fig.add_subplot(gs[2,0])
+    inds = np.where(ils['uniform'] >= ils['uniform'].max()*0.002)[0]
+    for ky in names:
+        ax.semilogy(wave[inds],ils[ky][inds])#/ils.max())
+    #[x0,x1] = ax.get_xlim()
+    #[y0,y1] = ax.get_ylim()
+    #ax.set_aspect(0.4*(x1-x0)/(log(y1)-log(y0)))
+    #plt.yscale('log')
+    plt.legend(ils.keys())
+    plt.title('Normalized ISRF for Different Slit Functions')
+    plt.tight_layout()
 
-#     plt.savefig('slit_plot.png',bbox_inches='tight')
+    plt.savefig('slit_plot.png',bbox_inches='tight')
 
