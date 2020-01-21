@@ -126,13 +126,14 @@ def plot_four_panel_kde(merge_file, comp_file, centered=True, sdfilter = 4, titl
             z_comp = (comp_var-mu_comp)
         sns.kdeplot(z_comp, shade=True, ax=axs[i], label=r'w/o sh, N = %d, $\mu$ = %.4e, $\sigma$ = %.4e'%( N_comp, mu_comp, sd_comp))
         max_sd = np.max([sd_merge, sd_comp])
-        axs[i].set_xlim([mu_merge-4*max_sd, mu_merge+4*max_sd])
         axs[i].legend()
         axs[i].set_xlabel(unit[i])
         if not centered:
             axs[i].set_title(var[i])
+            axs[i].set_xlim([mu_merge-4*max_sd, mu_merge+4*max_sd])
         else:
             axs[i].set_title(var[i] + ' (centered)')
+            axs[i].set_xlim([-4*max_sd, 4*max_sd])
     plt.subplots_adjust(hspace=0.25, wspace=0.15)
     fig.suptitle(title, y=.95,fontsize=20)
 
