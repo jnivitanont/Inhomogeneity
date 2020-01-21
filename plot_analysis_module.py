@@ -101,7 +101,7 @@ def plot_four_panel_kde(merge_file, comp_file, centered=True, sdfilter = 4, titl
         if not sdfilter is None:    
             mu_merge = np.nanmedian(merge_var)
             sd_merge = np.nanstd(merge_var)
-            ind = (np.abs(merge_var-mu) <  sdfilter*sd)
+            ind = (np.abs(merge_var-mu_merge) <  sdfilter*sd_merge)
             merge_var = merge_var[ind]
         N_merge = np.size(merge_var)
         mu_merge = np.nanmedian(merge_var)
@@ -115,7 +115,7 @@ def plot_four_panel_kde(merge_file, comp_file, centered=True, sdfilter = 4, titl
         if not sdfilter is None:    
             mu_comp = np.nanmedian(comp_var)
             sd_comp = np.nanstd(comp_var)
-            ind = (np.abs(comp_var-mu) <  sdfilter*sd)
+            ind = (np.abs(comp_var-mu_comp) <  sdfilter*sd_comp)
             comp_var = comp_var[ind]
         N_comp = np.size(comp_var)
         mu_comp = np.nanmedian(comp_var)
