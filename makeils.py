@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-#@Authors: Eric Burgh, Sean Crowell, Jeff Nivitanont
+# -*- coding: utf-8 -*-
+#
+# @Authors:     Eric Burgh (LM-ATC), Sean Crowell (OU), Jeff Nivitanont (OU)
+# @Description: This script models the way light diffracts in the GeoCarb instrument, and calculates the resulting Instrument Line Shape (ILS).
+# @Output:      None. The subsampled albedo file is modified inplace to contain the resulting ILS's.
+
 import numpy as np
 from scipy.special import jv as besselj
 from scipy.ndimage.filters import convolve as convol
@@ -22,11 +27,9 @@ parser.add_argument('-al','--albedo', metavar='albedo file', required=True, help
 parser.add_argument('-ar','--arp', metavar='arp file', required=True, help='ARP file')
 args = parser.parse_args()
 
-alb_fid=args.albedo
-arp_fid=args.arp
-#alb_fid="/data10/jnivitanont/ils_calcs_files/albedo_variation/lamont_ew_albedo_variation_2014.06.18.nc4"
-#arp_fid='/data10/jnivitanont/csu_sim/data/ARP/geocarb_sim_ARP_20180305_4band_1foot_fixed_new_snr.h5'
-trf_fid="/data10/jnivitanont/ils_calcs_files/ReplannedSHs.h5"
+alb_fid=args.albedo #subsampled albedo file. Output of subsample_gc_footprints.py
+arp_fid=args.arp #radiometric file containing spectral gridding information
+trf_fid="ReplannedSHs.h5" #This file contains the transfer function that characterizes a slit homogenizer's performance
 dtor = np.pi/180.
 plot_ils = False
 

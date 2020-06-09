@@ -1,3 +1,10 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# @Authors:     Sean Crowell (OU), Jeff Nivitanont (OU)
+# @Description: This script takes a file containing 500m MODIS albedo and subsamples it within specified GeoCarb footprint geometry.
+# @Output:      A file containing footprint averaged and N-S averaged subslit albedo. Output file is named "SITE_ew_albedo_variation_DATE.nc4"
+
 from netCDF4 import Dataset
 from pylab import *
 from h5py import File
@@ -11,16 +18,15 @@ parser.add_argument('-d','--date', metavar='date', required=True, help='MODIS fi
 parser.add_argument('-a','--arp', metavar='ARP file', required=True, help='ARP file')
 args = parser.parse_args()
 
-site = args.location#sys.argv[1] #'lamont' or 'manaus'
-date = args.date#sys.argv[2] #YYYY.mm.dd
-arp_fid = args.arp
-geom_fid = '/data10/jnivitanont/ils_calcs_files/geometry_'+site+'_2x2.hdf'
-#arp_fid = '/data10/jnivitanont/csu_sim/data/ARP/geocarb/geocarb_sim_ARP_20180305_4band_1foot_fixed_new_snr.h5'
+site = args.location
+date = args.date
+arp_fid = args.arp #radiometric input file used in simulator. Contains spectral gridding.
+geom_fid = '/YOUR_DATA/geometry_'+site+'_2x2.hdf' #File containing footprint geometries. 
 if site == 'lamont':
     cont = 'north_america_'
 elif site == 'manaus':
     cont = 'south_america_'
-modis_fid = '/data10/jnivitanont/ils_calcs_files/'+cont+date+'.nc4'
+modis_fid = '/YOUR_DATA/'+cont+date+'.nc4'
 fid_hr = Dataset(modis_fid,'r')
 lat = fid_hr['latitude'][:]
 lon = fid_hr['longitude'][:]
@@ -98,7 +104,7 @@ for il in range(len(glat_loc)):
     loc[il]['gc_lat'] = glat_loc[il]
     loc[il]['gc_lon'] = glon_loc[il]
 
-fid_out = Dataset('/data10/jnivitanont/ils_calcs_files/albedo_variation/'+site+'_ew_albedo_variation_'+date+'.nc4','w')
+fid_out = Dataset('/YOUR_DATA/albedo_variation/'+site+'_ew_albedo_variation_'+date+'.nc4','w')
 fid_out.createDimension('n_footprints',len(glat_loc))
 fid_out.createDimension('slit_points',len(lon_hr_g))
 fid_out.createDimension('ils_points',ils_grid.shape[-1])
